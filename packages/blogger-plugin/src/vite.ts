@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { type MinifyOptions, minify } from 'minify-xml';
 import type { MinimalPluginContextWithoutEnvironment, Plugin, PreviewServer, ResolvedConfig, UserConfig, ViteDevServer } from 'vite';
 import { DEFAULT_MODULES, DEFAULT_TEMPLATES, VITE_BUNDLER_KEY } from './constants';
 import { clearTailwindCache, removeTailwindCache, updateTailwindCache } from './tailwind';
@@ -13,11 +14,17 @@ import {
   toWebHeaders,
 } from './utils';
 
+export interface XMLOptions {
+  tags?: boolean;
+  minify?: boolean;
+}
+
 export interface BloggerPluginOptions {
   modules?: string[];
   styles?: string[];
   template?: string;
   proxyBlog: string;
+  xml?: XMLOptions;
 }
 
 export default function blogger(userOptions: BloggerPluginOptions): Plugin {
@@ -148,7 +155,10 @@ Without this, your assets may fail to load in Blogger.
       const originalTemplateXmlContent = fs.readFileSync(ctx.template, 'utf8');
       const modifiedTemplateXmlContent = replaceBloggerPluginHeadComment(originalTemplateXmlContent, headContent, true);
 
-      const templateTagsXmlContent = `<?xml version="1.0" encoding="UTF-8" ?>
+      fs.writeFileSync(path.resolve(ctx.viteConfig.build.outDir, 'template.xml'), modifiedTemplateXmlContent);
+
+      if (ctx.xml.tags) {
+        const templateTagsXmlContent = `<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -170,9 +180,19 @@ Without this, your assets may fail to load in Blogger.
   <!--body:beforeend:end-->
 </body>
 </html>`;
+        fs.writeFileSync(path.resolve(ctx.viteConfig.build.outDir, 'template.tags.xml'), templateTagsXmlContent);
+      }
 
-      fs.writeFileSync(path.resolve(ctx.viteConfig.build.outDir, 'template.xml'), modifiedTemplateXmlContent);
-      fs.writeFileSync(path.resolve(ctx.viteConfig.build.outDir, 'template-tags.xml'), templateTagsXmlContent);
+      if (ctx.xml.minify) {
+        const minifiedTemplateXmlContent = minify(modifiedTemplateXmlContent, {
+          removeComments: false,
+          shortenNamespaces: false,
+          removeUnusedNamespaces: false,
+          removeUnusedDefaultNamespace: false,
+          ignoreCData: true,
+        } as MinifyOptions);
+        fs.writeFileSync(path.resolve(ctx.viteConfig.build.outDir, 'template.min.xml'), minifiedTemplateXmlContent);
+      }
     },
     closeBundle() {
       const htmlDir = path.resolve(ctx.viteConfig.build.outDir, 'virtual:blogger-plugin');
@@ -190,13 +210,14 @@ Without this, your assets may fail to load in Blogger.
 }
 
 class BloggerPluginContext {
-  options: BloggerPluginOptions;
+  private options: BloggerPluginOptions;
   root: string;
   modules: string[];
   styles: string[];
   template: string;
   name: string;
   proxyBlog: URL;
+  xml: Required<XMLOptions>;
   viteConfig: ResolvedConfig;
   tailwind: boolean;
   input: string;
@@ -230,6 +251,10 @@ class BloggerPluginContext {
     this.template = undefined as unknown as string;
     this.name = undefined as unknown as string;
     this.proxyBlog = proxyBlog;
+    this.xml = {
+      tags: options.xml?.tags ?? false,
+      minify: options.xml?.minify ?? false,
+    };
     this.viteConfig = undefined as unknown as ResolvedConfig;
     this.tailwind = false;
     this.input = undefined as unknown as string;

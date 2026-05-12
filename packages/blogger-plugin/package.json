@@ -65,6 +65,7 @@
     "vite": "^7.0.0 || ^8.0.0"
   },
   "dependencies": {
+    "minify-xml": "^4.5.2",
     "tailwindcss-iso": "^1.0.6"
   },
   "devDependencies": {
