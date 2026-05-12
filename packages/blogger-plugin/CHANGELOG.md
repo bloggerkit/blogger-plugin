@@ -1,5 +1,11 @@
 # blogger-plugin
 
+## 0.0.10
+
+### Patch Changes
+
+- [`b44c8fa`](https://github.com/bloggerkit/blogger-plugin/commit/b44c8fa15a07762a20e15bb4d1937e08ac6eae53) Thanks [@kumardeo](https://github.com/kumardeo)! - feat: add option to generate minified xml
+
 ## 0.0.9
 
 ### Patch Changes
