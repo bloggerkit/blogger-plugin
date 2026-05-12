@@ -1,5 +1,11 @@
 # blogger-plugin
 
+## 0.0.11
+
+### Patch Changes
+
+- [`8236c2a`](https://github.com/bloggerkit/blogger-plugin/commit/8236c2a90124325e12599f994672fb3d0c49ed46) Thanks [@kumardeo](https://github.com/kumardeo)! - feat: improve tailwindcss classes extraction
+
 ## 0.0.10
 
 ### Patch Changes
