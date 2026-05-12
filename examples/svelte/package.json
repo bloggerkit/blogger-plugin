@@ -1,5 +1,5 @@
 {
-  "name": "svelte",
+  "name": "@examples/svelte",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,7 @@
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^25.7.0",
     "blogger-plugin": "workspace:*",
-    "svelte": "^0.0.0",
+    "svelte": "^5.55.5",
     "svelte-check": "^4.4.8",
     "vite": "^8.0.12"
   }
