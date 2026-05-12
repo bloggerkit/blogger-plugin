@@ -1,7 +1,7 @@
 import type { IncomingHttpHeaders, OutgoingHttpHeaders } from 'node:http';
 import type { Connect } from 'vite';
 
-export function escapeHtml(str: string) {
+export function escapeHtml(str: string): string {
   if (str === '') return '';
   return str.replace(/[&<>"'`]/g, (ch) => {
     switch (ch) {
@@ -23,7 +23,31 @@ export function escapeHtml(str: string) {
   });
 }
 
-export function escapeRegex(str: string) {
+export function unescapeHTML(str: string, xml = false): string {
+  if (str === '') return '';
+  const regex = new RegExp(`&(?:amp|lt|gt|quot${xml ? '|apos' : ''}|#39|#96);`, 'g');
+  return str.replace(regex, (entity) => {
+    switch (entity) {
+      case '&amp;':
+        return '&';
+      case '&lt;':
+        return '<';
+      case '&gt;':
+        return '>';
+      case '&quot;':
+        return '"';
+      case '&apos;':
+      case '&#39;':
+        return "'";
+      case '&#96;':
+        return '`';
+      default:
+        return entity;
+    }
+  });
+}
+
+export function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
@@ -46,21 +70,21 @@ export const BLOGGER_PLUGIN_HEAD_COMMENT_REGEX = /(<!--blogger-plugin:head:begin
 export const BLOGGER_PLUGIN_HEAD_BCOMMENT_REGEX =
   /(<b:comment><!--blogger-plugin:head:begin--><\/b:comment>)([\s\S]*?)(<b:comment><!--blogger-plugin:head:end--><\/b:comment>)/;
 
-export function replaceBloggerPluginHeadComment(input: string, replacement: string, bcomment = false) {
+export function replaceBloggerPluginHeadComment(input: string, replacement: string, bcomment = false): string {
   if (bcomment) {
     return input.replace(BLOGGER_PLUGIN_HEAD_BCOMMENT_REGEX, (_, start: string, _content: string, end: string) => `${start}${replacement}${end}`);
   }
   return input.replace(BLOGGER_PLUGIN_HEAD_COMMENT_REGEX, (_, start: string, _content: string, end: string) => `${start}${replacement}${end}`);
 }
 
-export function getBloggerPluginHeadComment(input: string, bcomment = false) {
+export function getBloggerPluginHeadComment(input: string, bcomment = false): string | null {
   if (bcomment) {
     return input.match(BLOGGER_PLUGIN_HEAD_BCOMMENT_REGEX)?.[2] ?? null;
   }
   return input.match(BLOGGER_PLUGIN_HEAD_COMMENT_REGEX)?.[2] ?? null;
 }
 
-export function replaceHost(input: string, oldHost: string, newHost: string, newProtocol?: string) {
+export function replaceHost(input: string, oldHost: string, newHost: string, newProtocol?: string): string {
   return input.replace(
     new RegExp(`(https?:)?(\\/\\/|\\\\/\\\\/)${escapeRegex(oldHost)}`, 'g'),
     (_, protocol, slash) => `${protocol ? (newProtocol ?? protocol) : ''}${slash ?? ''}${newHost}`,
@@ -84,7 +108,7 @@ export function getRequestUrl(req: Connect.IncomingMessage): URL | null {
   return null;
 }
 
-export function isBloggerPath(path: string) {
+export function isBloggerPath(path: string): boolean {
   return (
     path === '/' ||
     path === '/search' ||
@@ -100,7 +124,7 @@ export function isTailwindPlugin(plugin: { name: string }): boolean {
   return TAILWIND_PLUGIN_NAMES.has(plugin.name);
 }
 
-export function errorHtml(reqUrl: string) {
+export function errorHtml(reqUrl: string): string {
   return `<!DOCTYPE html>
 <html>
 

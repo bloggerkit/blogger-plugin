@@ -12,6 +12,7 @@ import {
   replaceBloggerPluginHeadComment,
   replaceHost,
   toWebHeaders,
+  unescapeHTML,
 } from './utils';
 
 export interface XMLOptions {
@@ -62,7 +63,7 @@ export default function blogger(userOptions: BloggerPluginOptions): Plugin {
         clearTailwindCache(ctx.root);
 
         if (config.command === 'build') {
-          updateTailwindCache(ctx.root, fs.readFileSync(ctx.template, 'utf-8'));
+          updateTailwindCache(ctx.root, unescapeHTML(fs.readFileSync(ctx.template, 'utf-8'), true), 'xml');
         }
       } else {
         removeTailwindCache(ctx.root);
@@ -450,7 +451,7 @@ function useServerMiddleware(server: ViteDevServer | PreviewServer, ctx: Blogger
           const secFetchDestHeader = req.headers['sec-fetch-dest'];
           const secFetchModeHeader = req.headers['sec-fetch-mode'];
           if (ctx.tailwind && isViteDevServer(server) && secFetchDestHeader === 'document' && secFetchModeHeader === 'navigate') {
-            await updateTailwindCache(ctx.root, htmlTemplateContent);
+            await updateTailwindCache(ctx.root, htmlTemplateContent, 'html');
           }
 
           htmlTemplateContent = replaceHost(htmlTemplateContent, proxyUrl.host, url.host, url.protocol);

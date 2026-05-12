@@ -66,9 +66,10 @@ export function removeTailwindCache(root: string): void {
   removeFile(getTailwindCacheFile(root));
 }
 
-export async function updateTailwindCache(root: string, content: string): Promise<void> {
+export async function updateTailwindCache(root: string, content: string, extension?: string): Promise<void> {
   const classes = (await getTailwindClasses({
     content,
+    extension,
   })) as string[];
 
   writeTailwindCache(root, [...new Set([...(readTailwindCache(root) ?? []), ...classes])]);
